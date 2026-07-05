@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manoj Kumar V R — Portfolio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0a0f1c;
+    --bg-2: #0d1526;
+    --ink: #e9edf5;
+    --muted: #7c8aa5;
+    --signal: #22e0c9;
+    --signal-dim: #1a4a48;
+    --gold: #f4a83b;
+    --line: rgba(233,237,245,0.08);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    overflow-x:hidden;
+    cursor:none;
+  }
+  @media (max-width:900px){ body{ cursor:auto; } }
+  ::selection{ background:var(--signal); color:#001210; }
+
+  /* custom cursor - the "signal ping" */
+  #cursor{
+    position:fixed; top:0; left:0; width:22px; height:22px;
+    border:1.5px solid var(--signal); border-radius:50%;
+    pointer-events:none; z-index:9999; transform:translate(-50%,-50%);
+    transition:width .18s ease,height .18s ease,border-color .18s ease,opacity .3s ease;
+    mix-blend-mode:screen;
+  }
+  #cursor::after{
+    content:''; position:absolute; inset:0; border-radius:50%;
+    background:var(--signal); opacity:.15;
+  }
+  @media (max-width:900px){ #cursor{ display:none; } }
+
+  canvas#routeCanvas{
+    position:fixed; inset:0; width:100%; height:100%; z-index:0; opacity:0.55;
+  }
+
+  .wrap{ position:relative; z-index:1; }
+
+  section{
+    position:relative;
+    padding: 8vh 8vw;
+    max-width:1200px;
+    margin:0 auto;
+  }
+
+  /* NAV */
+  nav{
+    position:fixed; top:0; left:0; right:0; z-index:100;
+    display:flex; justify-content:space-between; align-items:center;
+    padding:22px 8vw;
+    backdrop-filter: blur(10px);
+    background:linear-gradient(to bottom, rgba(10,15,28,0.85), transparent);
+  }
+  .logo{
+    font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:1.1rem;
+    letter-spacing:0.02em;
+  }
+  .logo span{ color:var(--signal); }
+  .navlinks{ display:flex; gap:2.2rem; font-family:'JetBrains Mono',monospace; font-size:0.72rem; letter-spacing:0.08em; text-transform:uppercase; }
+  .navlinks a{ color:var(--muted); text-decoration:none; transition:color .25s; position:relative; }
+  .navlinks a:hover{ color:var(--signal); }
+  @media (max-width:700px){ .navlinks{ display:none; } }
+
+  /* HERO */
+  .hero{
+    min-height:100vh; display:flex; flex-direction:column; justify-content:center;
+    padding-top:10vh;
+  }
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace; font-size:0.75rem; color:var(--signal);
+    letter-spacing:0.15em; text-transform:uppercase; margin-bottom:1.4rem;
+    display:flex; align-items:center; gap:10px;
+  }
+  .eyebrow .dot{
+    width:8px; height:8px; border-radius:50%; background:var(--signal);
+    box-shadow:0 0 0 0 rgba(34,224,201,.6); animation:pulse 2s infinite;
+  }
+  @keyframes pulse{
+    0%{ box-shadow:0 0 0 0 rgba(34,224,201,.5); }
+    70%{ box-shadow:0 0 0 10px rgba(34,224,201,0); }
+    100%{ box-shadow:0 0 0 0 rgba(34,224,201,0); }
+  }
+  h1.name{
+    font-family:'Space Grotesk',sans-serif; font-weight:700;
+    font-size: clamp(2.6rem, 8vw, 6rem);
+    line-height:0.98; letter-spacing:-0.01em;
+    background:linear-gradient(180deg, #fff 0%, #b9c4d8 100%);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .role-rotator{
+    margin-top:1.6rem; font-family:'JetBrains Mono',monospace;
+    font-size:clamp(0.95rem,2vw,1.25rem); color:var(--muted); height:1.6em;
+    display:flex; align-items:center;
+  }
+  .role-rotator .bracket{ color:var(--signal); }
+  #roleText{ color:var(--ink); margin:0 4px; }
+  .cursor-blink{ display:inline-block; width:2px; height:1em; background:var(--signal); animation:blink 1s step-end infinite; margin-left:2px; }
+  @keyframes blink{ 50%{ opacity:0; } }
+
+  .hero-desc{
+    max-width:640px; margin-top:2.2rem; color:var(--muted); font-size:1.02rem; line-height:1.7;
+  }
+  .hero-desc strong{ color:var(--ink); font-weight:600; }
+
+  .scrolldown{
+    margin-top:4rem; display:flex; align-items:center; gap:12px;
+    font-family:'JetBrains Mono',monospace; font-size:0.7rem; color:var(--muted); letter-spacing:0.1em;
+  }
+  .scrolldown .track{ width:1px; height:40px; background:var(--line); position:relative; overflow:hidden; }
+  .scrolldown .track::after{
+    content:''; position:absolute; top:-40px; left:0; width:100%; height:40px; background:var(--signal);
+    animation:travel 1.8s ease-in-out infinite;
+  }
+  @keyframes travel{ to{ top:40px; } }
+
+  /* SECTION HEADERS */
+  .sec-head{ display:flex; align-items:baseline; gap:1rem; margin-bottom:3rem; }
+  .sec-num{ font-family:'JetBrains Mono',monospace; color:var(--signal); font-size:0.9rem; }
+  .sec-title{ font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:clamp(1.6rem,4vw,2.4rem); }
+  .sec-line{ flex:1; height:1px; background:var(--line); }
+
+  .reveal{ opacity:0; transform:translateY(30px); transition:opacity .8s cubic-bezier(.2,.8,.2,1), transform .8s cubic-bezier(.2,.8,.2,1); }
+  .reveal.in{ opacity:1; transform:translateY(0); }
+
+  /* ABOUT */
+  .about-grid{ display:grid; grid-template-columns: 1.3fr 1fr; gap:4rem; align-items:start; }
+  @media (max-width:800px){ .about-grid{ grid-template-columns:1fr; gap:2.5rem; } }
+  .about-text{ font-size:1.05rem; line-height:1.85; color:#c7cfdf; }
+  .about-text b{ color:var(--signal); font-weight:600; }
+
+  .stat-card{
+    border:1px solid var(--line); border-radius:14px; padding:1.6rem;
+    background:linear-gradient(135deg, rgba(34,224,201,0.04), transparent);
+    margin-bottom:1rem; position:relative; overflow:hidden;
+  }
+  .stat-num{ font-family:'Space Grotesk',sans-serif; font-size:2.4rem; font-weight:700; color:var(--ink); }
+  .stat-num span{ color:var(--signal); }
+  .stat-label{ font-family:'JetBrains Mono',monospace; font-size:0.72rem; color:var(--muted); letter-spacing:0.05em; text-transform:uppercase; margin-top:4px; }
+
+  /* TIMELINE (Education + Experience as a "route") */
+  .route{ position:relative; padding-left:2.6rem; }
+  .route::before{
+    content:''; position:absolute; left:8px; top:0.4rem; bottom:0.4rem; width:2px;
+    background:linear-gradient(var(--signal-dim), var(--signal), var(--signal-dim));
+  }
+  .stop{ position:relative; padding-bottom:3.2rem; }
+  .stop:last-child{ padding-bottom:0; }
+  .stop::before{
+    content:''; position:absolute; left:-2.6rem; top:0.35rem; width:14px; height:14px; border-radius:50%;
+    background:var(--bg); border:2px solid var(--signal); box-shadow:0 0 0 4px var(--bg), 0 0 14px rgba(34,224,201,0.5);
+  }
+  .stop-tag{ font-family:'JetBrains Mono',monospace; font-size:0.7rem; color:var(--signal); text-transform:uppercase; letter-spacing:0.08em; }
+  .stop h3{ font-family:'Space Grotesk',sans-serif; font-size:1.3rem; font-weight:600; margin-top:0.4rem; }
+  .stop .org{ color:var(--muted); font-size:0.92rem; margin-top:2px; }
+  .stop ul{ margin-top:0.9rem; padding-left:1.1rem; color:#c7cfdf; line-height:1.75; font-size:0.95rem; }
+  .stop ul li::marker{ color:var(--signal); }
+
+  /* PROJECTS */
+  .proj-grid{ display:grid; grid-template-columns:1fr 1fr; gap:1.6rem; }
+  @media (max-width:800px){ .proj-grid{ grid-template-columns:1fr; } }
+  .proj-card{
+    border:1px solid var(--line); border-radius:16px; padding:2rem;
+    background:var(--bg-2); position:relative; overflow:hidden; transition:transform .35s ease, border-color .35s ease;
+  }
+  .proj-card:hover{ transform:translateY(-6px); border-color:var(--signal); }
+  .proj-card::before{
+    content:''; position:absolute; top:-40%; right:-40%; width:200px; height:200px; border-radius:50%;
+    background:radial-gradient(circle, rgba(34,224,201,0.15), transparent 70%);
+    opacity:0; transition:opacity .4s;
+  }
+  .proj-card:hover::before{ opacity:1; }
+  .proj-tag{ font-family:'JetBrains Mono',monospace; font-size:0.68rem; color:var(--gold); text-transform:uppercase; letter-spacing:0.08em; }
+  .proj-card h3{ font-family:'Space Grotesk',sans-serif; font-size:1.2rem; margin-top:0.6rem; font-weight:600; }
+  .proj-card p{ color:var(--muted); font-size:0.92rem; line-height:1.7; margin-top:0.8rem; }
+
+  /* SKILLS - signal bars */
+  .skills-wrap{ display:flex; flex-wrap:wrap; gap:0.9rem; }
+  .skill-pill{
+    display:flex; align-items:center; gap:10px;
+    border:1px solid var(--line); border-radius:100px; padding:0.65rem 1.2rem;
+    font-family:'JetBrains Mono',monospace; font-size:0.82rem; color:#c7cfdf;
+    transition:border-color .3s, color .3s;
+  }
+  .skill-pill:hover{ border-color:var(--signal); color:var(--ink); }
+  .bars{ display:flex; gap:2px; align-items:flex-end; height:12px; }
+  .bars i{ width:3px; background:var(--signal-dim); border-radius:1px; display:block; }
+  .bars i:nth-child(1){ height:4px; }
+  .bars i:nth-child(2){ height:7px; }
+  .bars i:nth-child(3){ height:10px; }
+  .bars i:nth-child(4){ height:12px; }
+  .skill-pill.high .bars i{ background:var(--signal); }
+  .skill-pill.high .bars i:nth-child(4){ animation:flicker 1.6s infinite; }
+  @keyframes flicker{ 0%,100%{ opacity:1; } 50%{ opacity:0.4; } }
+
+  /* CERT + LEADERSHIP */
+  .two-col{ display:grid; grid-template-columns:1fr 1fr; gap:3rem; }
+  @media (max-width:800px){ .two-col{ grid-template-columns:1fr; } }
+  .mini-card{ border-left:2px solid var(--signal); padding-left:1.2rem; margin-bottom:1.6rem; }
+  .mini-card h4{ font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:1.05rem; }
+  .mini-card p{ color:var(--muted); font-size:0.9rem; margin-top:4px; line-height:1.6; }
+
+  /* CTA / FOOTER */
+  .cta{ text-align:center; padding:14vh 8vw; }
+  .cta h2{
+    font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:clamp(2rem,6vw,4rem);
+    line-height:1.05; margin-bottom:1.6rem;
+  }
+  .cta h2 .out{ color:var(--signal); }
+  .cta p{ color:var(--muted); max-width:520px; margin:0 auto 2.4rem; line-height:1.7; }
+  .btn{
+    display:inline-flex; align-items:center; gap:10px;
+    background:var(--signal); color:#001210; font-weight:600;
+    padding:1rem 2rem; border-radius:100px; text-decoration:none;
+    font-family:'JetBrains Mono',monospace; font-size:0.85rem; letter-spacing:0.03em;
+    transition:transform .25s ease, box-shadow .25s ease;
+  }
+  .btn:hover{ transform:translateY(-3px); box-shadow:0 12px 30px rgba(34,224,201,0.25); }
+
+  footer{ text-align:center; padding:3rem 8vw 4rem; color:var(--muted); font-family:'JetBrains Mono',monospace; font-size:0.75rem; }
+
+  ::-webkit-scrollbar{ width:8px; }
+  ::-webkit-scrollbar-track{ background:var(--bg); }
+  ::-webkit-scrollbar-thumb{ background:var(--signal-dim); border-radius:10px; }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation:none !important; transition:none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div id="cursor"></div>
+<canvas id="routeCanvas"></canvas>
+
+<nav>
+  <div class="logo">MK<span>.</span></div>
+  <div class="navlinks">
+    <a href="#about">About</a>
+    <a href="#journey">Journey</a>
+    <a href="#projects">Projects</a>
+    <a href="#skills">Skills</a>
+    <a href="#objective">Objective</a>
+    <a href="#connect">Connect</a>
+  </div>
+</nav>
+
+<div class="wrap">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="eyebrow"><span class="dot"></span> full signal · open to opportunities</div>
+    <h1 class="name">Manoj Kumar<br>V R</h1>
+    <div class="role-rotator">
+      <span class="bracket">&lt;</span><span id="roleText">Sales Executive</span><span class="cursor-blink"></span><span class="bracket">/&gt;</span>
+    </div>
+    <p class="hero-desc">
+      A <strong>BCA graduate</strong> turned <strong>MBA candidate in Marketing &amp; Logistics</strong>,
+      currently closing deals on the ground as a <strong>Sales Executive at VI</strong>. I connect
+      the logic of technology with the instinct of the field — every customer conversation
+      is a data point, every route to market is a system waiting to be optimised.
+    </p>
+    <div class="scrolldown"><div class="track"></div> scroll to explore</div>
+  </section>
+
+  <!-- ABOUT -->
+  <section id="about">
+    <div class="sec-head"><span class="sec-num">01</span><span class="sec-title">Signal Check</span><div class="sec-line"></div></div>
+    <div class="about-grid reveal">
+      <div class="about-text">
+        <p>I operate at the intersection of <b>code and commerce</b>. My BCA background trained me to think
+        in systems and logic; my time in telecom sales trained me to read people, pressure, and timing.
+        The MBA is where those two signals merge — into a discipline built for <b>markets, movement, and momentum</b>.</p>
+        <br>
+        <p>Every day at VI, I acquire customers, manage relationships, and push past targets in a category
+        where trust has to be earned in a single conversation. I'm now channeling that same intensity into
+        <b>Marketing &amp; Logistics</b> — because the next frontier for me isn't just selling a product,
+        it's designing the entire pipeline that gets it there.</p>
+      </div>
+      <div>
+        <div class="stat-card">
+          <div class="stat-num" data-target="2">0<span>+</span></div>
+          <div class="stat-label">Academic ML / AI Projects Shipped</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" data-target="100">0<span>%</span></div>
+          <div class="stat-label">Field-Tested Sales &amp; Negotiation</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" data-target="1">0<span>x</span></div>
+          <div class="stat-label">Career Pivot in Motion — Tech to Strategy</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- JOURNEY (Education + Experience as route) -->
+  <section id="journey">
+    <div class="sec-head"><span class="sec-num">02</span><span class="sec-title">The Route So Far</span><div class="sec-line"></div></div>
+    <div class="route">
+      <div class="stop reveal">
+        <span class="stop-tag">In Progress</span>
+        <h3>MBA — Marketing &amp; Logistics</h3>
+        <div class="org">Business Strategy · Supply Chain · Market Systems</div>
+        <ul>
+          <li>Building expertise in market strategy, logistics, and supply chain operations</li>
+          <li>Applying data-driven, process-oriented thinking to real business growth problems</li>
+        </ul>
+      </div>
+      <div class="stop reveal">
+        <span class="stop-tag">Current Role</span>
+        <h3>Sales Executive — VI (Vodafone Idea)</h3>
+        <div class="org">Customer Acquisition · Relationship Management · Business Development</div>
+        <ul>
+          <li>Drive new customer acquisition through consultative selling of telecom products &amp; services</li>
+          <li>Build and sustain long-term customer relationships that support retention and repeat business</li>
+          <li>Manage end-to-end KYC documentation and service activation, ensuring full compliance</li>
+          <li>Identify untapped opportunities within assigned territory and consistently hit sales targets</li>
+        </ul>
+      </div>
+      <div class="stop reveal">
+        <span class="stop-tag">Foundation</span>
+        <h3>BCA — Loyola College, Chennai</h3>
+        <div class="org">Bachelor of Computer Applications</div>
+        <ul>
+          <li>Built a strong base in programming, systems thinking, and data analysis</li>
+          <li>Now a genuine differentiator — bringing tech fluency into business strategy conversations</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROJECTS -->
+  <section id="projects">
+    <div class="sec-head"><span class="sec-num">03</span><span class="sec-title">Built &amp; Deployed</span><div class="sec-line"></div></div>
+    <div class="proj-grid">
+      <div class="proj-card reveal">
+        <span class="proj-tag">Conversational AI</span>
+        <h3>Student FAQ Chatbot</h3>
+        <p>Designed and developed a chatbot that gives students instant answers to common academic
+        queries — cutting down manual query resolution and shrinking response time from hours to seconds.</p>
+      </div>
+      <div class="proj-card reveal">
+        <span class="proj-tag">Machine Learning</span>
+        <h3>Flood Prediction Using ML</h3>
+        <p>Completed during a machine learning internship: collected and analysed environmental and
+        historical data, then built predictive models to forecast flood risk using real ML workflows —
+        preprocessing, training, and evaluation.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SKILLS -->
+  <section id="skills">
+    <div class="sec-head"><span class="sec-num">04</span><span class="sec-title">Signal Strength</span><div class="sec-line"></div></div>
+    <div class="skills-wrap reveal">
+      <div class="skill-pill high">Sales <span class="bars"><i></i><i></i><i></i><i></i></span></div>
+      <div class="skill-pill high">Negotiation <span class="bars"><i></i><i></i><i></i><i></i></span></div>
+      <div class="skill-pill high">Business Development <span class="bars"><i></i><i></i><i></i><i></i></span></div>
+      <div class="skill-pill high">CRM <span class="bars"><i></i><i></i><i></i><i></i></span></div>
+      <div class="skill-pill high">Customer Service <span class="bars"><i></i><i></i><i></i><i></i></span></div>
+      <div class="skill-pill">Lead Generation <span class="bars"><i></i><i></i><i></i><i></i></span></div>
+      <div class="skill-pill">Communication <span class="bars"><i></i><i></i><i></i><i></i></span></div>
+      <div class="skill-pill">Microsoft Excel <span class="bars"><i></i><i></i><i></i><i></i></span></div>
+    </div>
+
+    <div class="two-col" style="margin-top:5rem;">
+      <div class="reveal">
+        <h4 style="font-family:'Space Grotesk',sans-serif;font-size:1.1rem;margin-bottom:1.5rem;color:var(--signal);">Certifications</h4>
+        <div class="mini-card">
+          <h4>AWS Academy Cloud Foundations</h4>
+          <p>Foundational knowledge of cloud infrastructure and services.</p>
+        </div>
+        <div class="mini-card">
+          <h4>Machine Learning Internship Certificate</h4>
+          <p>Applied, project-based ML experience end to end.</p>
+        </div>
+      </div>
+      <div class="reveal">
+        <h4 style="font-family:'Space Grotesk',sans-serif;font-size:1.1rem;margin-bottom:1.5rem;color:var(--signal);">Leadership &amp; Activities</h4>
+        <div class="mini-card">
+          <h4>AICUF Member</h4>
+          <p>All India Catholic University Federation — engaged in community and student welfare initiatives.</p>
+        </div>
+        <div class="mini-card">
+          <h4>Youth Welfare Team</h4>
+          <p>Active participant in outreach programs, contributing to social impact alongside academic and professional work.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CAREER OBJECTIVE -->
+  <section id="objective">
+    <div class="sec-head"><span class="sec-num">05</span><span class="sec-title">Destination</span><div class="sec-line"></div></div>
+    <div class="about-text reveal" style="max-width:760px;">
+      <p>To build a <b>successful, growth-oriented career in business management</b> — combining a
+      technical foundation, hands-on sales experience, and MBA-level strategic knowledge to
+      contribute meaningfully to organizational goals, while continuously developing as a
+      <b>future business leader</b>.</p>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section id="connect" class="cta">
+    <h2 class="reveal">Let's build the <span class="out">next route</span><br>together.</h2>
+    <p class="reveal">Open to conversations on business management, marketing &amp; logistics strategy,
+    and opportunities where field experience meets data-driven thinking.</p>
+    <a class="btn reveal" href="mailto:manojkumar@example.com">Get in touch ↗</a>
+  </section>
+
+  <footer>© 2026 Manoj Kumar V R — Designed for growth, built on signal.</footer>
+
+</div>
+
+<script>
+  // Custom cursor
+  const cursor = document.getElementById('cursor');
+  window.addEventListener('mousemove', e=>{
+    cursor.style.left = e.clientX+'px';
+    cursor.style.top = e.clientY+'px';
+  });
+  document.querySelectorAll('a, .proj-card, .skill-pill, .stat-card').forEach(el=>{
+    el.addEventListener('mouseenter', ()=>{ cursor.style.width='40px'; cursor.style.height='40px'; cursor.style.borderColor='#f4a83b'; });
+    el.addEventListener('mouseleave', ()=>{ cursor.style.width='22px'; cursor.style.height='22px'; cursor.style.borderColor='#22e0c9'; });
+  });
+
+  // Role rotator
+  const roles = ["Sales Executive", "MBA Student", "BCA Graduate", "Future Business Leader", "Relationship Builder"];
+  let ri = 0;
+  const roleEl = document.getElementById('roleText');
+  function typeRole(){
+    const word = roles[ri];
+    let i = 0;
+    roleEl.textContent = '';
+    const typer = setInterval(()=>{
+      roleEl.textContent = word.slice(0, i+1);
+      i++;
+      if(i === word.length){
+        clearInterval(typer);
+        setTimeout(eraseRole, 1400);
+      }
+    }, 55);
+  }
+  function eraseRole(){
+    const word = roleEl.textContent;
+    let i = word.length;
+    const eraser = setInterval(()=>{
+      roleEl.textContent = word.slice(0, i-1);
+      i--;
+      if(i === 0){
+        clearInterval(eraser);
+        ri = (ri+1) % roles.length;
+        typeRole();
+      }
+    }, 30);
+  }
+  typeRole();
+
+  // Scroll reveal
+  const revealEls = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach(entry=>{
+      if(entry.isIntersecting){ entry.target.classList.add('in'); }
+    });
+  }, { threshold: 0.15 });
+  revealEls.forEach(el=> io.observe(el));
+
+  // Animated stat counters
+  const statNums = document.querySelectorAll('.stat-num');
+  const statIO = new IntersectionObserver((entries)=>{
+    entries.forEach(entry=>{
+      if(entry.isIntersecting){
+        const el = entry.target;
+        const target = parseInt(el.getAttribute('data-target'));
+        const suffix = el.querySelector('span').outerHTML;
+        let cur = 0;
+        const step = Math.max(1, Math.floor(target/40));
+        const iv = setInterval(()=>{
+          cur += step;
+          if(cur >= target){ cur = target; clearInterval(iv); }
+          el.innerHTML = cur + suffix;
+        }, 30);
+        statIO.unobserve(el);
+      }
+    });
+  }, { threshold: 0.4 });
+  statNums.forEach(el=> statIO.observe(el));
+
+  // Background "route" canvas — network / logistics path lines
+  const canvas = document.getElementById('routeCanvas');
+  const ctx = canvas.getContext('2d');
+  let w, h, nodes = [];
+  function resize(){
+    w = canvas.width = window.innerWidth;
+    h = canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  const NODE_COUNT = 42;
+  for(let i=0;i<NODE_COUNT;i++){
+    nodes.push({
+      x: Math.random()*w,
+      y: Math.random()*h,
+      vx: (Math.random()-0.5)*0.25,
+      vy: (Math.random()-0.5)*0.25
+    });
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,w,h);
+    for(let i=0;i<nodes.length;i++){
+      const n = nodes[i];
+      n.x += n.vx; n.y += n.vy;
+      if(n.x < 0 || n.x > w) n.vx *= -1;
+      if(n.y < 0 || n.y > h) n.vy *= -1;
+    }
+    for(let i=0;i<nodes.length;i++){
+      for(let j=i+1;j<nodes.length;j++){
+        const a = nodes[i], b = nodes[j];
+        const dx = a.x-b.x, dy = a.y-b.y;
+        const dist = Math.sqrt(dx*dx+dy*dy);
+        if(dist < 160){
+          ctx.strokeStyle = `rgba(34,224,201,${0.12 * (1-dist/160)})`;
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(a.x,a.y);
+          ctx.lineTo(b.x,b.y);
+          ctx.stroke();
+        }
+      }
+    }
+    for(const n of nodes){
+      ctx.fillStyle = 'rgba(34,224,201,0.55)';
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, 1.6, 0, Math.PI*2);
+      ctx.fill();
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+</script>
+
+</body>
+</html>
